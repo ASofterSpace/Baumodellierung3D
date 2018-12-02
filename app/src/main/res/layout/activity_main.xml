@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.asofterspace.baumodellierung3d.MainActivity">
+
+    <TextView
+        android:id="@+id/tTraceMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Zeichne die wichtigsten Grundrisselemente nach:"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iFloorplan"
+        android:layout_width="wrap_content"
+        android:layout_height="420dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tTraceMsg"
+        app:srcCompat="@drawable/grundriss_noisy" />
+
+    <Button
+        android:id="@+id/rbDrawWall"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:text="Wand"
+        android:textColor="@color/colorBtnText"
+        android:background="@color/colorPrimary"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/rbDrawWindow"
+        app:layout_constraintTop_toBottomOf="@id/iFloorplan" />
+
+    <Button
+        android:id="@+id/rbDrawWindow"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:text="Fenster"
+        android:textColor="@color/colorBtnText"
+        android:background="@color/colorPrimary"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintLeft_toRightOf="@id/rbDrawWall"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/iFloorplan" />
+
+    <Button
+        android:id="@+id/rbDrawElectric"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:text="Stromleitung"
+        android:textColor="@color/colorBtnText"
+        android:background="@color/colorPrimary"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/rbDrawWindow"
+        app:layout_constraintTop_toBottomOf="@id/rbDrawWall" />
+
+    <Button
+        android:id="@+id/rbDrawSprinkler"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:text="Wasserleitung"
+        android:textColor="@color/colorBtnText"
+        android:background="@color/colorPrimary"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toRightOf="@id/rbDrawWall"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rbDrawWall" />
+
+</android.support.constraint.ConstraintLayout>
