@@ -1,10 +1,15 @@
 package com.asofterspace.baumodellierung3d;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private Button bDrawWindow;
     private Button bDrawElectric;
     private Button bDrawSprinklers;
+
+    private Paint currentPaint = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +54,14 @@ public class MainActivity extends AppCompatActivity {
         bDrawWindow = addToggleButton(R.id.rbDrawWindow);
         bDrawElectric = addToggleButton(R.id.rbDrawElectric);
         bDrawSprinklers = addToggleButton(R.id.rbDrawSprinkler);
+
+        Button bGenerateModel = findViewById(R.id.bGenerateModel);
+        bGenerateModel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleTo(null);
+            }
+        });
     }
 
     private Button addToggleButton(int buttonId) {
@@ -70,33 +86,129 @@ public class MainActivity extends AppCompatActivity {
         bDrawElectric.setBackgroundColor(defaultColor);
         bDrawSprinklers.setBackgroundColor(defaultColor);
 
-        if (targetButton != null) {
-            targetButton.setBackgroundColor(selectedColor);
+        if (targetButton == null) {
+            currentPaint = null;
+            return;
+        }
+
+        targetButton.setBackgroundColor(selectedColor);
+
+        if (targetButton.equals(bDrawWall)) {
+            currentPaint = new Paint();
+            currentPaint.setColor(Color.BLACK);
+            currentPaint.setStrokeWidth(30);
+        }
+
+        if (targetButton.equals(bDrawWindow)) {
+            currentPaint = new Paint();
+            currentPaint.setColor(Color.CYAN);
+            currentPaint.setStrokeWidth(30);
+        }
+
+        if (targetButton.equals(bDrawElectric)) {
+            currentPaint = new Paint();
+            currentPaint.setColor(Color.YELLOW);
+            currentPaint.setStrokeWidth(15);
+        }
+
+        if (targetButton.equals(bDrawSprinklers)) {
+            currentPaint = new Paint();
+            currentPaint.setColor(Color.BLUE);
+            currentPaint.setStrokeWidth(15);
         }
     }
 
     private void initCanvas() {
 
         // first we need to be clear about the dimensions...
-        int width = 1753;
-        int height = 1753;
+        final int floorplanWidth = 1753;
+        final int floorplanHeight = 1753;
 
         // we now create the basic objects to work with - a bitmap and a canvas
-        Bitmap baseBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas baseCanvas = new Canvas(baseBitmap);
+        final Bitmap baseBitmap = Bitmap.createBitmap(floorplanWidth, floorplanHeight, Bitmap.Config.ARGB_8888);
+        final Canvas baseCanvas = new Canvas(baseBitmap);
 
         // we draw the floor plan
-        Drawable floorplanPng = getResources().getDrawable(R.drawable.grundriss_noisy, null);
-        floorplanPng.setBounds(0, 0, width, height);
+        final Drawable floorplanPng = getResources().getDrawable(R.drawable.grundriss_noisy, null);
+        floorplanPng.setBounds(0, 0, floorplanWidth, floorplanHeight);
         floorplanPng.draw(baseCanvas);
 
-        // we assign our selfmade canvas
-        View v = new FloorplanCanvas(getApplicationContext());
-        v.draw(baseCanvas);
-
         // we show the resulting result
-        ImageView iv = findViewById(R.id.iFloorplan);
+        final ImageView iv = findViewById(R.id.iFloorplan);
         iv.setImageBitmap(baseBitmap);
+
+        iv.setOnTouchListener(new View.OnTouchListener() {
+
+            private boolean floorplanClicked = false;
+            private float floorplanX;
+            private float floorplanY;
+
+            private float convertCoordX(float in) {
+                return in * floorplanWidth / iv.getWidth();
+            }
+
+            private float convertCoordY(float in) {
+                return in * floorplanHeight / iv.getHeight();
+            }
+
+            @Override
+            public boolean onTouch(View v, MotionEvent me) {
+
+                // no painting before a paint is selected ;)
+                if (currentPaint == null) {
+                    return true;
+                }
+
+                switch (me.getAction()) {
+
+                    case MotionEvent.ACTION_DOWN:
+                        floorplanClicked = true;
+                        floorplanX = convertCoordX(me.getX());
+                        floorplanY = convertCoordY(me.getY());
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        if (floorplanClicked) {
+                            float nowX = convertCoordX(me.getX());
+                            float nowY = convertCoordY(me.getY());
+                            // only allow straight lines, such that the demo looks nice...
+                            if (Math.abs(nowX - floorplanX) < Math.abs(nowY - floorplanY)) {
+                                nowX = floorplanX;
+                            } else {
+                                nowY = floorplanY;
+                            }
+                            Bitmap previewBitmap = baseBitmap.copy(baseBitmap.getConfig(), true);
+                            Canvas previewCanvas = new Canvas(previewBitmap);
+                            previewCanvas.drawLine(floorplanX, floorplanY, nowX, nowY, currentPaint);
+                            iv.setImageBitmap(previewBitmap);
+                            iv.invalidate();
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        if (floorplanClicked) {
+                            floorplanClicked = false;
+                            float nowX = convertCoordX(me.getX());
+                            float nowY = convertCoordY(me.getY());
+                            // only allow straight lines, such that the demo looks nice...
+                            if (Math.abs(nowX - floorplanX) < Math.abs(nowY - floorplanY)) {
+                                nowX = floorplanX;
+                            } else {
+                                nowY = floorplanY;
+                            }
+                            baseCanvas.drawLine(floorplanX, floorplanY, nowX, nowY, currentPaint);
+                            iv.setImageBitmap(baseBitmap);
+                            iv.invalidate();
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_CANCEL:
+                        break;
+                }
+
+                return true;
+            }
+        });
     }
 
 }
